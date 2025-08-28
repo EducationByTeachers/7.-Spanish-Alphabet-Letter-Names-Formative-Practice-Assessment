@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Spanish Alphabet Letter Names Assessment</title>
+<style>
+  body {
+    margin:0; font-family:Arial, sans-serif; background:#f3f6fb; color:#222;
+  }
+  .hidden {display:none;}
+  .screen {
+    max-width:1000px; margin:40px auto; background:white; border-radius:12px; padding:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  }
+  .intro-inner {text-align:center; padding:40px;}
+  h1 {margin:0 0 20px;}
+  p {margin:0 0 30px; font-size:18px;}
+  .btn {
+    background:linear-gradient(90deg,#4b7bfd,#6a11cb); color:#fff; border:none; padding:14px 24px;
+    font-size:18px; border-radius:8px; cursor:pointer; font-weight:bold;
+  }
+  .quiz-bg {
+    background:linear-gradient(135deg,#2b6ef6,#6a11cb); min-height:100vh; padding:30px;
+  }
+  .quiz-box {
+    background:white; border-radius:12px; padding:20px;
+  }
+  .question {margin-bottom:20px;}
+  .q-title {font-weight:bold; margin-bottom:10px;}
+  .options-row {
+    display:flex; gap:12px; flex-wrap:wrap;
+  }
+  .option-cell {
+    border:1px solid #ccc; padding:10px 14px; border-radius:8px; cursor:pointer; background:#f9f9f9;
+    min-width:120px; text-align:center; font-weight:bold; user-select:none;
+  }
+  .option-cell.locked {opacity:0.8; pointer-events:none;}
+  .option-cell.correct {background:#c8f7d4; border-color:#2e7d32; color:#2e7d32;}
+  .option-cell.wrong {background:#f9d6d5; border-color:#d32f2f; color:#d32f2f;}
+  .side-panel {
+    margin-top:20px; text-align:center;
+  }
+  .final-msg {font-size:20px; font-weight:bold; margin-top:10px;}
+  .final-msg.warn {color:#d32f2f;}
+  .final-msg.soso {color:#ff9800;}
+  .final-msg.good {color:#2e7d32;}
+  .overlay {
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; z-index:9999;
+  }
+  .big-good {
+    font-size:80px; color:#2e7d32; font-weight:bold; opacity:0; transform:scale(0.9);
+    transition:all 0.4s ease;
+  }
+  .big-good.show {opacity:1; transform:scale(1);}
+  .confetti-piece {
+    position:fixed; width:10px; height:14px; border-radius:2px; z-index:10000; pointer-events:none;
+    animation:fall linear forwards;
+  }
+  @keyframes fall {
+    to {transform:translateY(100vh) rotate(720deg); opacity:0.9;}
+  }
+</style>
+</head>
+<body>
+
+<!-- INTRO SCREEN -->
+<div id="intro-screen" class="screen">
+  <div class="intro-inner">
+    <h1>Spanish Alphabet Letter Names — Assessment</h1>
+    <p>Drag and drop the month names (in Spanish) into the boxes in the correct order from 1 to 12.</p>
+    <button id="startBtn" class="btn">Start</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz-screen" class="quiz-bg hidden">
+  <div class="quiz-box">
+    <h2>Spanish Alphabet Letter Names — Assessment</h2>
+    <div id="questionsPanel"></div>
+    <div class="side-panel">
+      <div id="statusText">0 answered</div>
+      <div id="scoreDisplay">Score: 0</div>
+      <div id="finalMessage" class="final-msg"></div>
+      <button id="submitBtn" class="btn">Submit</button>
+      <button id="restartBtn" class="btn" style="margin-left:10px;">Restart</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOOD JOB overlay -->
+<div id="overlay" class="overlay" aria-hidden="true">
+  <div id="bigGood" class="big-good">GOOD JOB!</div>
+</div>
+
+<script>
+const QUESTIONS = [
+ {q:'1. Which letter name in Spanish is "ah"?', choices:['F','A','H','E'], key:'B'},
+ {q:'2. What is the Spanish name for the letter "B"?', choices:['beh','deh','peh','veh'], key:'A'},
+ {q:'3. The Spanish letter name "ceh" represents which letter?', choices:['S','Z','C','K'], key:'C'},
+ {q:'4. Which letter corresponds to "deh" in Spanish?', choices:['B','P','V','D'], key:'D'},
+ {q:'5. In Spanish, which letter is called "eh"?', choices:['I','A','O','E'], key:'D'},
+ {q:'6. The Spanish letter name "efeh" represents which letter?', choices:['S','F','T','P'], key:'B'},
+ {q:'7. Which letter is called "heh" in Spanish?', choices:['G','J','H','X'], key:'C'},
+ {q:'8. What letter corresponds to "ee" in Spanish?', choices:['E','I','Y','U'], key:'B'},
+ {q:'9. The Spanish name "hotah" represents which letter?', choices:['G','J','H','X'], key:'B'},
+ {q:'10. Which letter is called "kah" in Spanish?', choices:['C','Q','K','G'], key:'C'},
+ {q:'11. What is the Spanish name for the letter "L"?', choices:['eleh','emeh','eneh','ereh'], key:'A'},
+ {q:'12. The Spanish letter name "emeh" represents which letter?', choices:['N','M','W','V'], key:'B'},
+ {q:'13. Which letter corresponds to "eneh" in Spanish?', choices:['M','N','Ñ','W'], key:'B'},
+ {q:'14. In Spanish, which letter is called "oh"?', choices:['U','A','O','E'], key:'C'},
+ {q:'15. The Spanish letter name "peh" represents which letter?', choices:['B','D','V','P'], key:'D'},
+ {q:'16. Which letter is called "koo" in Spanish?', choices:['C','K','Q','G'], key:'C'},
+ {q:'17. What letter corresponds to "ereh" in Spanish?', choices:['L','R','K','P'], key:'B'},
+ {q:'18. The Spanish name "teh" represents which letter?', choices:['D','T','P','B'], key:'B'},
+ {q:'19. Which letter is called "oo" in Spanish?', choices:['O','U','W','Y'], key:'B'},
+ {q:'20. What is the Spanish name for the letter "Z"?', choices:['zeh','seh','ceh','ekis'], key:'A'}
+];
+
+let answeredCount = 0;
+let score = 0;
+let lockMap = {};
+const TOTAL = QUESTIONS.length;
+const questionsPanel = document.getElementById('questionsPanel');
+const statusText = document.getElementById('statusText');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const finalMessage = document.getElementById('finalMessage');
+const overlay = document.getElementById('overlay');
+const bigGood = document.getElementById('bigGood');
+
+function renderQuestions(){
+  questionsPanel.innerHTML = '';
+  QUESTIONS.forEach((item, idx)=>{
+    const qDiv = document.createElement('div');
+    qDiv.className = 'question';
+    const title = document.createElement('div');
+    title.className = 'q-title';
+    title.textContent = item.q;
+    qDiv.appendChild(title);
+
+    const optionsRow = document.createElement('div');
+    optionsRow.className = 'options-row';
+    ['A','B','C','D'].forEach((letter, li)=>{
+      const cell = document.createElement('div');
+      cell.className = 'option-cell';
+      cell.textContent = item.choices[li];
+      cell.dataset.q = idx;
+      cell.dataset.choice = letter;
+      cell.addEventListener('click', onOptionSelected);
+      optionsRow.appendChild(cell);
+    });
+    qDiv.appendChild(optionsRow);
+    questionsPanel.appendChild(qDiv);
+  });
+}
+
+function onOptionSelected(e){
+  const cell = e.currentTarget;
+  const qIdx = parseInt(cell.dataset.q);
+  if(lockMap[qIdx]) return;
+  lockMap[qIdx] = true;
+
+  const choice = cell.dataset.choice;
+  const correct = QUESTIONS[qIdx].key;
+  const siblings = cell.parentElement.querySelectorAll('.option-cell');
+  siblings.forEach(s => {s.classList.add('locked'); s.removeEventListener('click',onOptionSelected);});
+  if(choice === correct){
+    cell.classList.add('correct');
+    score++;
+  } else {
+    cell.classList.add('wrong');
+  }
+  answeredCount++;
+  updateStatus();
+  if(answeredCount === TOTAL){ evaluateFinal(); }
+}
+
+function updateStatus(){
+  statusText.textContent = `${answeredCount} answered`;
+  scoreDisplay.textContent = `Score: ${score}`;
+}
+
+function evaluateFinal(){
+  const percent = Math.round((score/TOTAL)*100);
+  if(percent === 100){
+    finalMessage.textContent = "Perfect!";
+    finalMessage.className = "final-msg good";
+    showGoodJob();
+  } else if(percent >= 60){
+    finalMessage.textContent = "Good job but you can do better.";
+    finalMessage.className = "final-msg soso";
+  } else {
+    finalMessage.textContent = "Don't get discouraged, keep trying.";
+    finalMessage.className = "final-msg warn";
+  }
+  scoreDisplay.textContent = `Score: ${score} (${percent}%)`;
+}
+
+function showGoodJob(){
+  overlay.style.display = 'flex';
+  bigGood.classList.add('show');
+  startConfetti();
+}
+
+function hideGoodJob(){
+  overlay.style.display = 'none';
+  bigGood.classList.remove('show');
+}
+
+let confettiInterval=null, confettiPieces=[], confettiTimeout=null;
+function startConfetti(){
+  stopConfetti();
+  confettiInterval=setInterval(()=>{for(let i=0;i<8;i++) createConfettiPiece();},220);
+  confettiTimeout=setTimeout(()=>stopConfetti(),8000);
+}
+function createConfettiPiece(){
+  const piece=document.createElement('div');
+  piece.className='confetti-piece';
+  const colors=['#EF476F','#FFD166','#06D6A0','#118AB2','#6A11CB','#8ECAE6'];
+  piece.style.left=(Math.random()*100)+'vw';
+  piece.style.top=(-20-Math.random()*100)+'px';
+  piece.style.background=colors[Math.floor(Math.random()*colors.length)];
+  piece.style.width=(8+Math.random()*10)+'px';
+  piece.style.height=(10+Math.random()*18)+'px';
+  const dur=2+Math.random()*2.5;
+  piece.style.animationDuration=dur+'s';
+  document.body.appendChild(piece);
+  confettiPieces.push(piece);
+  setTimeout(()=>{if(piece.parentElement)piece.parentElement.removeChild(piece);},(dur*1000)+600);
+}
+function stopConfetti(){
+  if(confettiInterval){clearInterval(confettiInterval);confettiInterval=null;}
+  if(confettiTimeout){clearTimeout(confettiTimeout);confettiTimeout=null;}
+  confettiPieces.forEach(p=>{if(p.parentElement)p.parentElement.removeChild(p);});
+  confettiPieces=[];
+}
+
+function restartQuiz(){
+  answeredCount=0;score=0;lockMap={};
+  finalMessage.textContent='';finalMessage.className='final-msg';
+  hideGoodJob();stopConfetti();
+  renderQuestions();updateStatus();
+}
+
+document.getElementById('startBtn').addEventListener('click',()=>{
+  document.getElementById('intro-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  restartQuiz();
+});
+document.getElementById('submitBtn').addEventListener('click',evaluateFinal);
+document.getElementById('restartBtn').addEventListener('click',restartQuiz);
+</script>
+</body>
+</html>
